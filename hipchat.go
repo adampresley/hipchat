@@ -70,6 +70,7 @@ type ErrorResponse struct {
 }
 
 type Client struct {
+	Url       string
 	AuthToken string
 }
 
@@ -94,8 +95,16 @@ func urlValuesFromMessageRequest(req MessageRequest) (url.Values, error) {
 	return payload, nil
 }
 
+func (c *Client) GetUrl() string {
+	if c.Url != "" {
+		return c.Url
+	} else {
+		return baseURL
+	}
+}
+
 func (c *Client) PostMessage(req MessageRequest) error {
-	uri := fmt.Sprintf("%s/rooms/message?auth_token=%s", baseURL, url.QueryEscape(c.AuthToken))
+	uri := fmt.Sprintf("%s/rooms/message?auth_token=%s", c.GetUrl(), url.QueryEscape(c.AuthToken))
 
 	payload, err := urlValuesFromMessageRequest(req)
 	if err != nil {
@@ -125,7 +134,7 @@ func (c *Client) PostMessage(req MessageRequest) error {
 
 func (c *Client) RoomHistory(id, date, tz string) ([]Message, error) {
 	uri := fmt.Sprintf("%s/rooms/history?auth_token=%s&room_id=%s&date=%s&timezone=%s",
-		baseURL, url.QueryEscape(c.AuthToken), url.QueryEscape(id), url.QueryEscape(date), url.QueryEscape(tz))
+		c.GetUrl(), url.QueryEscape(c.AuthToken), url.QueryEscape(id), url.QueryEscape(date), url.QueryEscape(tz))
 
 	resp, err := http.Get(uri)
 	if err != nil {
@@ -153,7 +162,7 @@ func (c *Client) RoomHistory(id, date, tz string) ([]Message, error) {
 }
 
 func (c *Client) RoomList() ([]Room, error) {
-	uri := fmt.Sprintf("%s/rooms/list?auth_token=%s", baseURL, url.QueryEscape(c.AuthToken))
+	uri := fmt.Sprintf("%s/rooms/list?auth_token=%s", c.GetUrl(), url.QueryEscape(c.AuthToken))
 
 	resp, err := http.Get(uri)
 	if err != nil {
